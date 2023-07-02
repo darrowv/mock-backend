@@ -1,40 +1,54 @@
-// prisma/seed.ts
-
 import { PrismaClient } from '@prisma/client';
 
-// initialize Prisma Client
 const prisma = new PrismaClient();
 
 async function main() {
-  // create two dummy articles
-  const post1 = await prisma.post.upsert({
-    where: { text: 'Prisma Adds Support for MongoDB' },
+  const alice = await prisma.user.upsert({
+    where: { email: 'alice@prisma.io' },
     update: {},
     create: {
-      text: 'Prisma Adds Support for MongoDB',
-      author: 'Jack',
+      email: 'alice@prisma.io',
+      password: 'alicealice',
+      role: 'user',
+      name: 'Alice',
+      Post: {
+        create: {
+          title: 'Check out Prisma with Next.js',
+          body: 'https://www.prisma.io/nextjs',
+        },
+      },
     },
   });
-
-  const post2 = await prisma.post.upsert({
-    where: { text: "What's new in Prisma? (Q1/22)" },
+  const bob = await prisma.user.upsert({
+    where: { email: 'bob@prisma.io' },
     update: {},
     create: {
-      text: "What's new in Prisma? (Q1/22)",
-      author: 'John',
+      email: 'bob@prisma.io',
+      name: 'Bob',
+      password: 'BobBob',
+      role: 'user',
+      Post: {
+        create: [
+          {
+            title: 'Follow Prisma on Twitter',
+            body: 'https://twitter.com/prisma',
+          },
+          {
+            title: 'Follow Nexus on Twitter',
+            body: 'https://twitter.com/nexusgql',
+          },
+        ],
+      },
     },
   });
-
-  console.log({ post1, post2 });
+  console.log({ alice, bob });
 }
-
-// execute the main function
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    // close Prisma Client at the end
+  .then(async () => {
     await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
   });
