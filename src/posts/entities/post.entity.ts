@@ -6,14 +6,14 @@ export class PostEntity implements Post {
   id: number;
 
   @ApiProperty()
-  text: string;
+  title: string;
 
   @ApiProperty()
-  author: string;
+  body: string;
+
+  @ApiProperty()
+  authorId: number;
 
   @ApiProperty()
   createdAt: Date;
-
-  @ApiProperty()
-  updatedAt: Date;
 }
