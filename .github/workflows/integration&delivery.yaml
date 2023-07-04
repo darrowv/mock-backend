@@ -1,0 +1,46 @@
+name: dev deploy
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: clone the repo
+        uses: actions/checkout@v3
+      - name: setup nodejs
+        uses: actions/setup-node@v3
+          with:
+            node-version: '16.x'
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format
+
+  deploy:
+    runs-on: ubuntu-latest
+    depends-on: check
+    steps:
+      - name: install ssh key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+          if_key_exists: replace
+      - name: setup nodejs 
+        uses: actions/setup-node@v3
+          with:
+            node-version: '16.x'
+      - name: build and deploy
+        uses: actions/checkout@v3
+        run: npm ci
+        run: npm run build
+        run: |
+          ssh root@45.130.42.47 DATABASE_URL=${{ secrets.DATABASE_URL }}
+          cd /home/mock-backend
+          git pull origin dev
+          npm run build
+          pm2 stop nest
+          pm2 start nest
+          pm2 save
